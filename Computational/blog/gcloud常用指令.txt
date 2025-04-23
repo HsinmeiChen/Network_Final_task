@@ -1,0 +1,29 @@
+#登入
+gcloud auth login
+
+#查看已登入的帳號
+gcloud auth list
+
+#切換帳號
+gcloud config set account [ACCOUNT]
+
+#確認切換結果
+gcloud auth list
+
+#設定選擇專案
+gcloud config set project <project_id>
+
+#build image
+gcloud builds submit --tag gcr.io/<project_id>/<image-name>
+
+#部屬
+gcloud run deploy  <container-name> --image gcr.io/<project_id>/<container-name> --platform managed --region us-central1 --allow-unauthenticated
+
+#查看完整的設定
+gcloud config list
+
+#列出有權限的所有專案
+gcloud projects list
+
+#啟用gcp指定服務
+gcloud services enable [SERVICE_NAME]
