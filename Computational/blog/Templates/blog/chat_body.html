@@ -1,0 +1,15 @@
+{% for msg in conversation %}
+<div class="message-wrapper {% if msg.sender == 'user' %}user-wrapper{% else %}ai-wrapper{% endif %}">
+    <div class="message {% if msg.sender == 'user' %}user{% else %}{{ msg.source }}{% endif %}">
+        {{ msg.message|safe }}
+    </div>
+</div>
+{% for videoURL in msg.videoURL %}
+<iframe width="560" height="315" 
+        src="{{ videoURL }}" 
+        frameborder="0" 
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+        allowfullscreen>
+</iframe>
+{% endfor %}
+{% endfor %}
