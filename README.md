@@ -19,6 +19,6 @@ OpenAI_Completion：單題互動模式，無上下文、快速回應、格式清
 OpenAI_Assistant：多輪對話模式，有上下文記憶、適合逐步引導
 
 系統流程：
-使用者輸入 → views.py 處理輸入 → 呼叫 ask_chatgpt() → Service_Assistant 根據模式選擇 Assistant
+   使用者輸入 → views.py 處理輸入 → 呼叫 ask_chatgpt() → Service_Assistant 根據模式選擇 Assistant
  → OpenAI_Completion → OpenAI 回應 JSON → 顯示在 chat.html 前端畫面
  → OpenAI_Assistant  → Assistant API 回應串
