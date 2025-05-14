@@ -2,4 +2,5 @@
 
 執行步驟：
 pip install -r requirements.txt
+
 python manage.py runserver
