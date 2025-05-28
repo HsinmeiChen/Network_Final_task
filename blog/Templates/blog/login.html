@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .login-container {
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      width: 300px;
+      text-align: center;
+    }
+    .login-container h2 {
+      margin-bottom: 20px;
+      color: #333;
+    }
+    .login-container form {
+      margin: 0;
+    }
+    .login-container input[type="text"],
+    .login-container input[type="password"] {
+      width: calc(100% - 20px);
+      padding: 10px;
+      margin-bottom: 15px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      text-align: left;
+    }
+    .login-container label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+      text-align: left;
+    }
+    .login-container button {
+      width: 100%;
+      padding: 10px;
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .login-container button:hover {
+      background-color: #0056b3;
+    }
+    .error {
+      color: red;
+      margin-bottom: 10px;
+      display: none;
+    }
+  </style>
+  <script>
+    function validateForm(event) {
+      event.preventDefault(); // 防止表單直接提交
+
+      const userid = document.getElementById('id_userid').value.trim();
+      const password = document.getElementById('id_password').value.trim();
+      const errorLabel = document.getElementById('error-label');
+
+      // 前端簡單檢查：欄位不得為空
+      if (userid === '' || password === '') {
+        errorLabel.textContent = '使用者ID與密碼均不可為空';
+        errorLabel.style.display = 'block';
+        return false;
+      }
+
+      // 前端檢查通過，交由後端進行驗證
+      errorLabel.style.display = 'none';
+      event.target.submit();
+    }
+  </script>
+</head>
+<body>
+  <div class="login-container">
+    <h2>登入</h2>
+    <form method="post" onsubmit="validateForm(event)">
+      {% csrf_token %}
+      
+      <!-- 錯誤訊息 -->
+      <label id="error-label" class="error"></label>
+
+      <!-- 輸入 USERID -->
+      <div>
+        <label for="id_userid">使用者ID</label>
+        <input type="text" name="userid" id="id_userid" placeholder="請輸入使用者ID">
+      </div>
+
+      <!-- 輸入密碼 -->
+      <div>
+        <label for="id_password">密碼</label>
+        <input type="password" name="password" id="id_password" placeholder="請輸入密碼">
+      </div>
+
+      <button type="submit">登入</button>
+    </form>
+  </div>
+</body>
+</html>

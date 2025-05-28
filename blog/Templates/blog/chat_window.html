@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat with AI</title>
+    <style>
+        :root {
+            --primary-color: #3B82F6;
+            --hover-color: #2563EB;
+            --bg-color: #F3F4F6;
+            --chat-bg: #FFFFFF;
+            --user-msg-bg: #E5E7EB;
+            --ai-msg-bg: #DBEAFE;
+            --border-radius: 12px;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #f6f7ff 0%, #e9eeff 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .button-common {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            height: 48px;
+            letter-spacing: 0.5px;
+        }   
+        /* 送出按鈕樣式 */
+        #send-button {
+            background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+            color: white;
+            width: 100%;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.25);
+        }
+        /* 送出按鈕禁用狀態的專用樣式 */
+        #send-button.disabled,
+        #next-step-button.disabled {
+            background: #e9270e !important;  /* 紅色背景 */
+            color: white !important;         /* 白色文字 */
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+            opacity: 1;
+            animation: none !important;
+        }
+        #send-button:hover {
+            background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.35);
+        }
+
+        #send-button:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 10px rgba(59, 130, 246, 0.2);
+        }
+
+        /* 下一步教程按鈕樣式 */
+        #next-step-button {
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+            color: white;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.25);
+        }
+
+        #next-step-button:hover {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.35);
+        }
+
+        #next-step-button:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 10px rgba(16, 185, 129, 0.2);
+        }
+
+        /* 載入動畫 */
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+
+
+        .chat-container {
+            width: 100%;
+            max-width: 1000px;
+            background-color: var(--chat-bg);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: row;
+            position: relative;
+            overflow: hidden;
+            height: 85vh;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .chat-main {
+            flex: 3;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--bg-color);
+            position: relative;
+            z-index: 1;
+            border-radius: var(--border-radius) 0 0 var(--border-radius);
+        }
+
+        .chat-body {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: linear-gradient(to bottom, #ffffff, #f8f9fa);
+            position: relative;
+            z-index: 1;
+            scroll-behavior: smooth;
+        }
+
+        .chat-body::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .chat-body::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .chat-body::-webkit-scrollbar-thumb {
+            background: #CBD5E0;
+            border-radius: 4px;
+        }
+
+        .next-step-container {
+            padding: 15px;
+            background-color: #ffffff;
+            border-top: 1px solid #E5E7EB;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .button-common {
+            padding: 12px 24px;
+            border: none;
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            height: 44px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .button-common:hover {
+            background-color: var(--hover-color);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }  
+
+        .next-step-container .button-common {
+            width: 90%;
+            max-width: none;
+        }
+
+        .chat-input {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: #ffffff;
+            padding: 20px;
+            border-left: 1px solid #E5E7EB;
+            position: relative;
+            z-index: 2;
+            border-radius: 0 var(--border-radius) var(--border-radius) 0;
+        }
+
+        .chat-input textarea {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #E5E7EB;
+            border-radius: 8px;
+            font-size: 15px;
+            resize: none;
+            transition: border-color 0.3s ease;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+
+        .chat-input textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .message-wrapper {
+            display: flex;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+            animation: messageSlide 0.3s ease-out;
+        }
+
+        @keyframes messageSlide {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message-wrapper.user-wrapper {
+            justify-content: flex-end;
+        }
+
+        .message-wrapper.ai-wrapper {
+            justify-content: flex-start;
+        }
+        .message-wrapper.ai-wrapper .message.chatgpt {
+            background-color: #FFEDD5; /* 橘色背景 */
+            color: #1F2937;
+        }        
+
+        .message {
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 15px;
+            line-height: 1.5;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            word-wrap: break-word;
+        }
+
+        .message.user {
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 12px 12px 2px 12px;
+        }
+
+        .message.step {
+            background-color: var(--ai-msg-bg);
+            color: #1F2937;
+            border-radius: 12px 12px 12px 2px;
+        }
+
+        .message.chatgpt {
+            background-color: var(--ai-msg-bg);
+            color: #1F2937;
+            border-radius: 12px 12px 12px 2px;
+        }
+
+        /* 移除原有的動畫效果 */
+        .chat-input button.disabled {
+            background-color: #e9270e;      /* 保持一致的紅色 */
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        img {
+            max-width: 100%;
+            border-radius: 8px;
+            margin-top: 5px;
+            height: auto;
+            max-height: 300px;
+        }
+
+        iframe {
+            border-radius: 8px;
+            margin-top: 10px;
+            box-shadow: var(--shadow);
+            max-width: 100%;
+        }
+        .chat-header {
+            display: flex;
+            justify-content: flex-end;
+            padding: 12px 20px;
+            background-color: #ffffff;
+            border-bottom: 1px solid #E5E7EB;
+        }
+
+        .header-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .header-button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .logout-button {
+            background-color: #EF4444;
+            color: white;
+        }
+
+        .logout-button:hover {
+            background-color: #DC2626;
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 24px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 400px;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .modal-button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .confirm-button {
+            background-color: #EF4444;
+            color: white;
+        }
+
+        .cancel-button {
+            background-color: #E5E7EB;
+            color: #374151;
+        }        
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-main">
+            <div class="chat-header">
+                <div class="header-buttons">
+                    <button class="header-button logout-button" id="logout-button">登出</button>
+                </div>
+            </div>            
+            <div class="chat-body" id="chat-body">
+                {% for msg in conversation %}
+                <div class="message-wrapper {% if msg.sender == 'user' %}user-wrapper{% else %}ai-wrapper{% endif %}">
+                    <div class="message {% if msg.sender == 'user' %}user{% else %}{{ msg.source }}{% endif %}">
+                        {{ msg.message|safe }}
+                    </div>
+                </div>
+                {% for videoURL in msg.videoURL %}
+                <iframe width="560" height="315" 
+                        src="{{ videoURL }}" 
+                        frameborder="0" 
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                        allowfullscreen>
+                </iframe>
+                {% endfor %}
+                {% endfor %}          
+            </div>
+            <!-- <div class="next-step-container">
+                <button type="button" id="next-step-button" name="action" value="next_step">下一步</button>
+            </div> -->
+        </div>
+
+        <form method="post" id="chat-form" class="chat-input">
+            {% csrf_token %}
+            <textarea name="message" id="chat-message" placeholder="輸入您的問題或回答..." maxlength=500 required></textarea>
+            <button type="submit" id="send-button" name="action" value="send">送出</button>
+        </form>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirmModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-title">確認</div>
+            <div id="modal-message"></div>
+            <div class="modal-buttons">
+                <button class="modal-button cancel-button" id="cancelButton">取消</button>
+                <button class="modal-button confirm-button" id="confirmButton">確認</button>
+            </div>
+        </div>
+    </div>    
+
+    <!-- 還原為內嵌 JavaScript -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        // Handle page refresh
+        window.addEventListener('beforeunload', function(e) {
+            e.preventDefault();
+            e.returnValue = '';
+            
+            // Send cleanup request to backend
+            navigator.sendBeacon('/remove-teaching-session/', JSON.stringify({
+                user_id: "{{ request.user.id }}"
+            }));
+        });
+
+        
+        // Modal functionality
+        const modal = document.getElementById('confirmModal');
+        const modalMessage = document.getElementById('modal-message');
+        const confirmButton = document.getElementById('confirmButton');
+        const cancelButton = document.getElementById('cancelButton');
+        
+        function showModal(message, onConfirm) {
+            modalMessage.textContent = message;
+            modal.style.display = 'block';
+            
+            confirmButton.onclick = () => {
+                modal.style.display = 'none';
+                onConfirm();
+            };
+            
+            cancelButton.onclick = () => {
+                modal.style.display = 'none';
+            };
+        }
+
+        // Logout functionality
+        document.getElementById('logout-button').addEventListener('click', () => {
+            showModal('確定要登出嗎？', () => {
+                fetch('/logout/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                    },
+                    body: JSON.stringify({
+                        user_id: "{{ request.user.id }}"
+                    })
+                })
+                .then(response => {
+                    if (response.ok) {
+                        window.location.replace('/login/');
+                    }
+                });
+            });
+        });
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+
+        // 函數：恢復送出按鈕狀態
+        function enableSendButton() {
+            var sendButton = document.getElementById('send-button');
+            sendButton.disabled = false;                  // 啟用按鈕
+            sendButton.classList.remove('disabled');      // 移除禁用樣式
+            sendButton.textContent = '送出';              // 恢復按鈕文字
+        }
+
+        // 函數：禁用送出按鈕並更改樣式
+        function disableSendButton() {
+            var sendButton = document.getElementById('send-button');
+            sendButton.disabled = true;                   // 禁用按鈕
+            sendButton.classList.add('disabled');         // 添加禁用樣式
+            sendButton.textContent = '請稍後';            // 更改按鈕文字
+        }
+        // 函數：禁用所有按鈕
+        function disableAllButtons() {
+            // 禁用送出按鈕
+            var sendButton = document.getElementById('send-button');
+            sendButton.disabled = true;
+            sendButton.classList.add('disabled');
+            sendButton.textContent = '請稍後';
+
+            // 禁用下一步教程按鈕
+            // var nextStepButton = document.getElementById('next-step-button');
+            // nextStepButton.disabled = true;
+            // nextStepButton.classList.add('disabled');
+            // nextStepButton.textContent = '請稍後';
+        }
+
+        // 函數：恢復所有按鈕
+        function enableAllButtons() {
+            // 恢復送出按鈕
+            var sendButton = document.getElementById('send-button');
+            sendButton.disabled = false;
+            sendButton.classList.remove('disabled');
+            sendButton.textContent = '送出';
+
+            // 恢復下一步教程按鈕
+            // var nextStepButton = document.getElementById('next-step-button');
+            // nextStepButton.disabled = false;
+            // nextStepButton.classList.remove('disabled');
+            // nextStepButton.textContent = '下一步';
+        }
+        // 函數讓 chat-body 自動滾動到最底部
+        function scrollToBottom() {
+            var chatBody = document.getElementById("chat-body");
+            chatBody.scrollTop = chatBody.scrollHeight; // 滾動到最底部
+        }
+
+        // 每次表單提交後，使用 AJAX 發送表單數據，更新 chat-body
+        document.getElementById('chat-form').addEventListener('submit', function(event) {
+            event.preventDefault(); // 阻止表單的默認提交行為
+            // 禁用送出按鈕
+            disableSendButton();
+            // 獲取觸發提交的按鈕
+            handleSendMessage();
+        });
+
+        // 處理 "下一步教程" 按鍵的點擊事件
+        // document.getElementById('next-step-button').addEventListener('click', function() {
+        //     handleNextStep();
+        // });
+    
+        // 頁面加載完成後，讓 chat-body 滾動到底部
+        window.onload = function() {
+            scrollToBottom();
+        };
+        // 處理 "送出" 按鈕功能
+        function handleSendMessage() {
+            disableAllButtons(); // 禁用所有按鈕
+
+            var userMessage = $('#chat-message').val();
+
+            $('#chat-body').append(
+                '<div class="message-wrapper user-wrapper">' +
+                    '<div class="message user">' + userMessage + '</div>' +
+                '</div>'
+            );
+            scrollToBottom();
+
+            var formData = new FormData(document.getElementById('chat-form'));
+            document.getElementById('chat-message').value = '';
+
+            fetch("{% url 'chat_view' %}", {
+                method: "POST",
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+                },
+                body: formData
+            })
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('chat-body').innerHTML = data;
+                scrollToBottom();
+                enableAllButtons(); // 恢復所有按鈕
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                enableAllButtons(); // 錯誤時也要恢復按鈕
+            });
+
+            scrollToBottom();
+        }
+
+        // 處理 "下一步教程" 按鈕功能
+        function handleNextStep() {
+            disableAllButtons(); // 禁用所有按鈕
+
+            fetch("{% url 'edu_step_view' %}", {
+                method: "POST",
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                }
+            })
+            .then(response => response.text())
+            .then(data => {
+                $('#chat-body').append(data);
+                setTimeout(() => {
+                    scrollToBottom();
+                }, 0);
+                enableAllButtons(); // 恢復所有按鈕
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                enableAllButtons(); // 錯誤時也要恢復按鈕
+            });
+        }
+    </script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const chatMessage = document.getElementById('chat-message');
+
+        chatMessage.addEventListener('keydown', (event) => {
+            if (event.altKey && event.key === 'Enter') {
+                // 插入換行符
+                const start = chatMessage.selectionStart;
+                const end = chatMessage.selectionEnd;
+                const text = chatMessage.value;
+                chatMessage.value = text.substring(0, start) + '\n' + text.substring(end);
+
+                // 調整光標位置
+                chatMessage.selectionStart = chatMessage.selectionEnd = start + 1;
+
+                // 阻止表單提交或其他默認行為
+                event.preventDefault();
+            }
+        });
+    });
+</script>
+</body>
+</html>
