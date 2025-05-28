@@ -144,7 +144,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # myproject/settings.py
 
 # 添加或更新這行，將 your_new_openai_api_key 替換為你的新 API 密鑰
-OPENAI_API_KEY = "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"
+OPENAI_API_KEY = "替換自己的API"
 
 CSP_DEFAULT_SRC = ("'self'",)
 CSP_IMG_SRC = ("'self'", "https://i.postimg.cc/")
